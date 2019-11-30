@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # Make sure you have the latest version of the repo
 echo
@@ -17,8 +17,8 @@ echo
 
 echo setting up git
 
-git config --global user.name $userVar
-git config --global user.email $emailVar
+git config user.name $userVar
+git config user.email $emailVar
 git remote set-url origin $upstreamVar
 echo
 
