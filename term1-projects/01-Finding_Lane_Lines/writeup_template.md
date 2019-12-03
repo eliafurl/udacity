@@ -2,10 +2,12 @@
 
 [//]: # (Image References)
 
-[image0]: ./examples/grayscale.jpg "Grayscale"
 [image1]: ./imgs/grayscale_image.jpg "Grayscale"
-[image2]: ./imgs/canny_image.jpg "Canny edge detection"
-[image3]: ./imgs/masked_image.jpg "Masked image for line detection"
+[image2]: ./imgs/filtered_image.jpg "Filtered image"
+[image3]: ./imgs/canny_image.jpg "Canny edge detection"
+[image4]: ./imgs/masked_image.jpg "Masked image for line detection"
+[image5]: ./imgs/lines_image.jpg "Line image"
+[image6]: ./imgs/final_image.jpg "Final processed image"
 
 ---
 
@@ -13,29 +15,30 @@
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-My pipeline consisted of <N> steps:
-1. converts the image to grayscale
+My pipeline consisted of  steps:
+1. converts the image to grayscale 
 
-![alt_text][image1]
+    ![alt_text][image1]
+
 1. smooths the image applying a gaussian filtering in order to decrease the noise
+    
+    ![alt_text][image2]
+    
 1. applies the Canny edge detection to the converted and filtered image
-
-![alt_text][image2]
+    
+    ![alt_text][image3]
+    
 1. applies the ROI mask to the Canny image in order to search the lines only in the interested region
-
-![alt_text][image3]
+    
+    ![alt_text][image4]
+    
 1. search for the lines with the Hough transformation
 1. compute the average lane lines from the detected lines:
     1. the average slope and lines segments are evaluated
-    1. the line segment is augmented in order to be displayed in the whole ROI
-    1. 
-    
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
-
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
-
-![alt text][image0]
-
+    1. the average line segment is extended in order to be displayed in the whole ROI
+    ![alt text][image5]
+1. the original image and the processed one are merged in order to superimpose the obtained lines to the road
+    ![alt text][image6]
 
 ### 2. Identify potential shortcomings with your current pipeline
 
