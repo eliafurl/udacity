@@ -5,4 +5,7 @@
 set_git.sh
 docker_launch.txt
 
+# project1
+term1-projects/01-Finding_Lane_Lines/test_videos_output/*
+!term1-projects/01-Finding_Lane_Lines/test_videos_output/ignore.txt
 
