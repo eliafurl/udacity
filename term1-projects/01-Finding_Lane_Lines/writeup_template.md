@@ -2,6 +2,7 @@
 
 [//]: # (Image References)
 
+[image0]: ./examples/grayscale.jpg "Grayscale"
 [image1]: ./imgs/grayscale_image.jpg "Grayscale"
 [image2]: ./imgs/filtered_image.jpg "Filtered image"
 [image3]: ./imgs/canny_image.jpg "Canny edge detection"
