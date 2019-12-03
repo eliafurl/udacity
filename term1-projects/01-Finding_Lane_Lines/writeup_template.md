@@ -15,7 +15,7 @@
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-My pipeline consisted of  steps:
+My pipeline consists of 7 steps:
 1. converts the image to grayscale 
 
     ![alt_text][image1]
@@ -36,8 +36,12 @@ My pipeline consisted of  steps:
 1. compute the average lane lines from the detected lines:
     1. the average slope and lines segments are evaluated
     1. the average line segment is extended in order to be displayed in the whole ROI
+    1. the final lines are drawn on a black image
+    
     ![alt text][image5]
+    
 1. the original image and the processed one are merged in order to superimpose the obtained lines to the road
+    
     ![alt text][image6]
 
 ### 2. Identify potential shortcomings with your current pipeline
