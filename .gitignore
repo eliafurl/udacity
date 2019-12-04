@@ -9,3 +9,5 @@ docker_launch.txt
 term1-projects/01-Finding_Lane_Lines/test_videos_output/*
 !term1-projects/01-Finding_Lane_Lines/test_videos_output/ignore.txt
 
+term1-projects/01-Finding_Lane_Lines/test_images_output/*
+!term1-projects/01-Finding_Lane_Lines/test_images_output/.placeholder
