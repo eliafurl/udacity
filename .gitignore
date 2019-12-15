@@ -1,5 +1,6 @@
 # standard
 .DS_Store
+.vscode
 
 # files
 set_git.sh
