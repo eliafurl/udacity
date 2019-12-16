@@ -1,6 +1,8 @@
 # standard
 .DS_Store
 .vscode
+*.pyc
+__pycache__
 
 # files
 set_git.sh
