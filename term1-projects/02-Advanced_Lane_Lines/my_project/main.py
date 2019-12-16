@@ -9,7 +9,7 @@ def main():
 
     LLD = LaneLinesDetection(images_for_calibration_path, display=display)
 
-    test_image_path = '../test_images/straight_lines1.jpg'
+    test_image_path = '../test_images/test1.jpg'
     test_image = cv2.imread(test_image_path)
 
     if display:

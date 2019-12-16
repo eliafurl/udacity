@@ -76,23 +76,19 @@ def region_of_interest(img, vertices):
     masked_image = cv2.bitwise_and(img, mask)
     return masked_image
 
-def top_down_view(img, M):
-    src_points = []
-    dst_points = []
+def getPerspectiveTransform(src_points, dst_points):
+    M = cv2.getPerspectiveTransform(src_points, dst_points)
+    return M
 
-    if self.M:
-        pass
-    else:
-        self.M = cv2.getPerspectiveTransform(src_points, dst_points)
-    pass
+def top_down_view(img, M):
+    img_size = (img.shape[1],img.shape[0])
+    warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
+    return warped
 
 def hist(img):
-    # TO-DO: Grab only the bottom half of the image
-    # Lane lines are likely to be mostly vertical nearest to the car
     bottom_half = img[img.shape[0]//2:,:]
-
-    # TO-DO: Sum across image pixels vertically - make sure to set `axis`
-    # i.e. the highest areas of vertical lines should be larger values
     histogram = np.sum(bottom_half, axis=0)
-
     return histogram
+
+def find_lines_sliding_window(img):
+    pass
