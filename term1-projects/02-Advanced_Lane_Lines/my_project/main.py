@@ -16,6 +16,7 @@ def main():
         cv2.imshow('Original image', test_image)
         cv2.waitKey(50)
         cv2.imwrite('../output_images/test_image.jpg',test_image)
+        cv2.destroyAllWindows()
 
     LLD.process_image(test_image)
 
