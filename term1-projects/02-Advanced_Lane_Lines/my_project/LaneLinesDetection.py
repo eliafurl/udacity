@@ -28,10 +28,11 @@ class LaneLinesDetection:
         self.cameraMatrix = np.array([])
         self.distCoeffs = np.array([])
         self.display = display
-        #self.current_frame = None
+        # self.current_frame = None
         self.M = np.array([])
         self.left_lane = Line()
         self.right_lane = Line()
+        # self.video_mode = 0
 
     def calibrate_camera(self, path):
         '''
@@ -116,11 +117,11 @@ class LaneLinesDetection:
             dst_points = np.float32([[offset,imshape[0]], [offset,0], [imshape[1]-offset,0], [imshape[1]-offset,imshape[0]]])
 
             if self.display:
-                for_displaying = masked_binary_image.copy()
-                cv2.polylines(for_displaying,np.int32([src_points]),True,(255,0,0))
-                cv2.imshow('Perspective transform before', for_displaying*254)
+                for_displaying = image.copy()
+                cv2.polylines(for_displaying,np.int32([src_points]),True,(0,0,255), 5)
+                cv2.imshow('Perspective transform before', for_displaying)
                 cv2.waitKey(0)
-                cv2.imwrite('../output_images/before_transformation.jpg',for_displaying*254)
+                cv2.imwrite('../output_images/before_transformation.jpg',for_displaying)
                 cv2.destroyAllWindows()
 
             self.M = tools.getPerspectiveTransform(src_points, dst_points)
@@ -130,7 +131,7 @@ class LaneLinesDetection:
 
         if self.display:
             for_displaying = top_down_view_image.copy()
-            cv2.polylines(for_displaying,np.int32([dst_points]),True,(255,255,0))
+            cv2.polylines(for_displaying,np.int32([dst_points]),True,(0,0,255), 5)
             cv2.imshow('top_down_view_image', for_displaying*254)
             cv2.waitKey(0)
             cv2.imwrite('../output_images/top_down_view_image.jpg', for_displaying*254)
