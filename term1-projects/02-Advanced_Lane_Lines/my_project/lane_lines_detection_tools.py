@@ -1,62 +1,50 @@
 #imports
 import numpy as np
 import cv2
-import glob
-import matplotlib.pyplot as plt
 
 #useful methods
-def calibrate_camera(path):
-    '''
-    Calibration of the camera
-    inputs:     path = path of the calibration images folder
-    outputs:    (mtx, dist)
-    '''
-    # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-    objp = np.zeros((6*9,3), np.float32)
-    objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
-
-    # Arrays to store object points and image points from all the images.
-    objpoints = [] # 3d points in real world space
-    imgpoints = [] # 2d points in image plane.
-
-    # Make a list of calibration images
-    images = glob.glob(path)
-
-    # Step through the list and search for chessboard corners
-    for fname in images:
-        img = cv2.imread(fname)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Find the chessboard corners
-        ret, corners = cv2.findChessboardCorners(gray, (9,6), None)
-
-        # If found, add object points, image points
-        if ret == True:
-            objpoints.append(objp)
-            imgpoints.append(corners)
-
-            # Draw and display the corners
-            #img = cv2.drawChessboardCorners(img, (9,6), corners, ret)
-            #cv2.imshow('img',img)
-            #cv2.waitKey(50)
-
-    #cv2.destroyAllWindows()
-
-    ret, cameraMatrix, distCoeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-    return (cameraMatrix, distCoeffs)
-
 def undistort_image(img, cameraMatrix, distCoeffs):
     undist = cv2.undistort(img, cameraMatrix, distCoeffs, None, cameraMatrix)
     return undist
 
-def convert_to_binary(img, thresh=(0, 255)):
+def hls_threshold(img, h_thresh=(0, 255), s_thresh=(0, 255)):
     hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+    # H channel
+    h_channel = hls[:,:,0]
+    h_threshold = np.zeros_like(img)
+    h_threshold[(h_channel > h_thresh[0]) & (h_channel <= h_thresh[1])] = 1
+    cv2.imshow('h_threshold', h_threshold*254) #DEBUG
+    cv2.waitKey(0) # DEBUG
+    # cv2.imwrite('./output_images/h_threshold.jpg',h_threshold*254)
+    # S channel
     s_channel = hls[:,:,2]
-    # cv2.imshow('s_channel', s_channel) #DEBUG
-    # cv2.waitKey(0) # DEBUG
-    binary_output = np.zeros_like(s_channel)
-    binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
-    return s_channel#binary_output
+    s_threshold = np.zeros_like(img)
+    s_threshold[(s_channel > s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
+    cv2.imshow('s_threshold', s_threshold*254) #DEBUG
+    cv2.waitKey(0) # DEBUG
+    # cv2.imwrite('./output_images/s_threshold.jpg',s_threshold*254)
+    hls_threshold = np.zeros_like(img)
+    hls_threshold[(h_threshold == 1) & (s_threshold == 1)] = 1
+    cv2.imshow('hls_threshold', hls_threshold*254) #DEBUG
+    cv2.waitKey(0) # DEBUG
+    # cv2.imwrite('./output_images/hls_threshold.jpg',hls_threshold*254)
+    return hls_threshold
+
+def red_threshold(img, thresh=(0,255)):
+    red_channel = img[:,:,2]
+    red_threshold = np.zeros_like(img)
+    red_threshold[(red_channel > thresh[0]) & (red_channel <= thresh[1])] = 1
+    cv2.imshow('red_threshold', red_threshold*254) #DEBUG
+    cv2.waitKey(0) # oldDEBUG
+    # cv2.imwrite('./output_images/r_threshold.jpg',r_threshold*254)
+    return red_threshold
+
+def convert_to_binary(img):
+    red_binary = red_threshold(img, thresh=(150,255))
+    hls_binary = hls_threshold(img, h_thresh=(15,100), s_thresh=(90,255))
+    binary_output = np.zeros_like(img)
+    binary_output[(red_binary == 1) & (hls_binary == 1)] = 1
+    return binary_output
 
 def region_of_interest(img, vertices):
     #defining a blank mask to start with
@@ -89,6 +77,9 @@ def hist(img):
     bottom_half = img[img.shape[0]//2:,:]
     histogram = np.sum(bottom_half, axis=0)
     return histogram
+
+def find_lanes_boundaries(img):
+    pass
 
 def find_lines_sliding_window(img):
     pass
