@@ -12,7 +12,7 @@ class Line():
         #polynomial coefficients averaged over the last n iterations
         self.best_fit = None
         #polynomial coefficients for the most recent fit
-        self.current_fit = [np.array([False])]
+        self.current_fit = np.array([False])
         #radius of curvature of the line in some units
         self.radius_of_curvature = None
         #distance in meters of vehicle center from the line
@@ -23,3 +23,15 @@ class Line():
         self.allx = None
         #y values for detected line pixels
         self.ally = None
+
+    def update(self, fit, fitx, fity):
+        if fit.any():
+            if self.current_fit.any():
+                self.diffs = 0
+            else:
+                self.diffs = self.current_fit - fit
+            if sum(np.absolute(self.diffs)) < 1:
+                self.current_fit = fit
+                self.detected = True
+                self.allx = fitx
+                self.ally = fity

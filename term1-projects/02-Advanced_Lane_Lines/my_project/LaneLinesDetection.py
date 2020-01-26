@@ -28,10 +28,12 @@ class LaneLinesDetection:
         self.cameraMatrix = np.array([])
         self.distCoeffs = np.array([])
         self.display = display
-        # self.current_frame = None
+        self.frame_number = 0
+        self.window_search = True
         self.M = np.array([])
-        self.left_lane = Line()
-        self.right_lane = Line()
+        self.M_inv = np.array([])
+        self.left_line = Line()
+        self.right_line = Line()
         # self.video_mode = 0
 
     def calibrate_camera(self, path):
@@ -93,11 +95,11 @@ class LaneLinesDetection:
         if self.display:
             cv2.imshow('undistort_image', undistort_image)
             cv2.waitKey(0)
-            cv2.imwrite('../output_images/undistort_image.jpg',undistort_image)
+            cv2.imwrite('./output_images/01-undistort_image.jpg',undistort_image)
             cv2.destroyAllWindows()
 
         # Convert to a binary image and apply a region of interest
-        binary_image = tools.convert_to_binary(undistort_image)
+        binary_image = tools.convert_to_binary(undistort_image, self.display)
 
         imshape = binary_image.shape
         vertices = np.array([[(0.1*imshape[1],imshape[0]),(0.45*imshape[1], 0.6*imshape[0]), (0.55*imshape[1], 0.6*imshape[0]), (0.9*imshape[1],imshape[0])]], dtype=np.int32)
@@ -105,39 +107,48 @@ class LaneLinesDetection:
         masked_binary_image = tools.region_of_interest(binary_image, vertices)
 
         if self.display:
-            cv2.imshow('masked_binary_image', masked_binary_image*254)
-            cv2.waitKey(0)
-            cv2.imwrite('../output_images/masked_binary_image.jpg', masked_binary_image*254)
+            out_img = np.dstack((masked_binary_image, masked_binary_image, masked_binary_image))*255
+            cv2.imshow('masked_binary_image', out_img)
+            cv2.waitKey(10)
+            cv2.imwrite('./output_images/07-masked_binary_image.jpg', out_img)
             cv2.destroyAllWindows()
 
         # Compute the perspective transformation matrix M
         if not self.M.any():
-            src_points = np.float32([[200,720], [615,435], [665,435], [1080,720]])
-            offset = 300
-            dst_points = np.float32([[offset,imshape[0]], [offset,0], [imshape[1]-offset,0], [imshape[1]-offset,imshape[0]]])
-
+            x = imshape[1]
+            y = imshape[0]
+            source_points = np.float32([[0.117 * x, y],[(0.5 * x) - (x*0.078), (2/3)*y],[(0.5 * x) + (x*0.078), (2/3)*y],[x - (0.117 * x), y]])
+            destination_points = np.float32([[0.25 * x, y],[0.25 * x, 0],[x - (0.25 * x), 0],[x - (0.25 * x), y]])
+            
             if self.display:
-                for_displaying = image.copy()
-                cv2.polylines(for_displaying,np.int32([src_points]),True,(0,0,255), 5)
-                cv2.imshow('Perspective transform before', for_displaying)
-                cv2.waitKey(0)
-                cv2.imwrite('../output_images/before_transformation.jpg',for_displaying)
+                out_img = image.copy()
+                cv2.polylines(out_img,np.int32([source_points]),True,(0,0,255), 5)
+                cv2.imshow('Perspective transform before', out_img)
+                cv2.waitKey(10)
+                cv2.imwrite('./output_images/08-before_transformation.jpg',out_img)
                 cv2.destroyAllWindows()
 
-            self.M = tools.getPerspectiveTransform(src_points, dst_points)
-
+            self.M = tools.getPerspectiveTransform(source_points, destination_points)
+            self.M_inv = tools.getPerspectiveTransform(destination_points, source_points)
         # Apply a perspective transform to rectify binary image.
-        top_down_view_image = tools.top_down_view(masked_binary_image, self.M)
+        top_down_view_image = tools.top_down_view(masked_binary_image, self.M) #masked_binary_image
 
         if self.display:
-            for_displaying = top_down_view_image.copy()
-            cv2.polylines(for_displaying,np.int32([dst_points]),True,(0,0,255), 5)
-            cv2.imshow('top_down_view_image', for_displaying*254)
-            cv2.waitKey(0)
-            cv2.imwrite('../output_images/top_down_view_image.jpg', for_displaying*254)
+            out_img = np.dstack((top_down_view_image, top_down_view_image, top_down_view_image))*255
+            print('out_img.shape = {}'.format(out_img.shape))
+            cv2.polylines(out_img,np.int32([destination_points]),True,(0,0,255), 5)
+            cv2.imshow('Perspective transform after', out_img)
+            cv2.waitKey(10)
+            cv2.imwrite('./output_images/09-top_down_view_image.jpg', out_img)
             cv2.destroyAllWindows()
 
         # Detect lane pixels and fit to find the lane boundary.
-        self.current_left_line, self.current_right_line = tools.find_lanes_boundaries(top_down_view_image)
+        if self.window_search:
+            left_fit, right_fit, leftx, lefty, rightx, righty, = tools.find_lines_sliding_window(top_down_view_image, self.display)
+        else:
+            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit, self.window_search, self.frame_number, self.display)
+
+        self.left_line.update(left_fit, leftx, lefty)
+        self.right_line.update(right_fit, rightx, righty)
 
 

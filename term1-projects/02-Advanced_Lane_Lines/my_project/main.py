@@ -15,7 +15,7 @@ def main():
     if display:
         cv2.imshow('Original image', test_image)
         cv2.waitKey(50)
-        cv2.imwrite('./output_images/original_image.jpg',test_image)
+        cv2.imwrite('./output_images/00-original_image.jpg',test_image)
         cv2.destroyAllWindows()
 
     LLD.calibrate_camera(images_for_calibration_path)
