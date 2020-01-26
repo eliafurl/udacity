@@ -151,4 +151,32 @@ class LaneLinesDetection:
         self.left_line.update(left_fit, leftx, lefty)
         self.right_line.update(right_fit, rightx, righty)
 
+        # highlight lane boundaries
+        highlighted_lane = tools.lane_fill_poly(top_down_view_image, undistort_image, self.left_line.current_fit, self.right_line.current_fit, self.M_inv)
+
+        if self.display:
+            #cv2.imshow('highlighted_lane', highlighted_lane)
+            #cv2.waitKey(0)
+            cv2.imwrite('./output_images/11-highlighted_lane.jpg',highlighted_lane)
+            cv2.destroyAllWindows()
+
+        if self.frame_number==0 or self.frame_number%15==0:
+            # measure curve radius
+            curve_radius = tools.measure_curve(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit)
+            print('curve_radius = {}'.format(curve_radius))
+            # measure vehicle offset from the center of the lane
+            vehicle_offset = tools.vehicle_offset(highlighted_lane, self.left_line.current_fit, self.right_line.current_fit)
+            print('vehicle_offset = {}'.format(vehicle_offset))
+
+        font = cv2.FONT_HERSHEY_TRIPLEX
+        processed_frame = cv2.putText(highlighted_lane, 'Radius: '+str(curve_radius)+' m', (30, 40), font, 1, (0,255,0), 2)
+        processed_frame = cv2.putText(processed_frame, 'Offset: '+str(vehicle_offset)+' m', (30, 80), font, 1, (0,255,0), 2)
+        
+        if self.display:
+            #cv2.imshow('processed_frame', processed_frame)
+            #cv2.waitKey(0)
+            cv2.imwrite('./output_images/12-processed_frame.jpg',processed_frame)
+            cv2.destroyAllWindows()
+        
+        self.frame_number += 1
 

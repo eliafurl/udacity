@@ -30,8 +30,9 @@ class Line():
                 self.diffs = 0
             else:
                 self.diffs = self.current_fit - fit
-            if sum(np.absolute(self.diffs)) < 1:
-                self.current_fit = fit
-                self.detected = True
-                self.allx = fitx
-                self.ally = fity
+            #if sum(np.absolute(self.diffs)) < 100:
+            self.current_fit = fit
+            print('self.current_fit = \n{}'.format(self.current_fit))
+            self.detected = True
+            self.allx = fitx
+            self.ally = fity

@@ -235,3 +235,80 @@ def find_lines_from_prior(binary_warped, left_fit, right_fit, window_search, fra
 
 
     return left_fit, right_fit, leftx, lefty, rightx, righty, window_search
+
+def get_val(y, poly_coeff):
+    return poly_coeff[0]*y**2 + poly_coeff[1]*y + poly_coeff[2]
+
+def lane_fill_poly(binary_warped, undist, left_fit, right_fit, M_inv):
+    
+    # Generate x and y values
+    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0])
+
+    left_fitx = get_val(ploty,left_fit)
+    right_fitx = get_val(ploty,right_fit)
+    
+    # Create an image to draw the lines on
+    warp_zero = np.zeros_like(binary_warped).astype(np.uint8)
+    color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+    # Recast x and y for cv2.fillPoly()
+    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    pts = np.hstack((pts_left, pts_right))
+
+    # Draw the lane 
+    cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
+
+    # Warp using inverse perspective transform
+    newwarp = cv2.warpPerspective(color_warp, M_inv, (binary_warped.shape[1], binary_warped.shape[0])) 
+    # overlay
+    result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+
+    return result
+
+def measure_curve(binary_warped, left_fit, right_fit):
+    # generate y values 
+    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
+    
+    # measure radius at the maximum y value, or bottom of the image
+    # this is closest to the car 
+    y_eval = np.max(ploty)
+    
+    # coversion rates for pixels to metric
+    ym_per_pix = 30/720 # meters per pixel in y dimension
+    xm_per_pix = 3.7/700 # meters per pixel in x dimension
+   
+    # x positions lanes
+    leftx = get_val(ploty,left_fit)
+    rightx = get_val(ploty,right_fit)
+
+    # fit polynomials in metric 
+    left_fit_cr = np.polyfit(ploty*ym_per_pix, leftx*xm_per_pix, 2)
+    right_fit_cr = np.polyfit(ploty*ym_per_pix, rightx*xm_per_pix, 2)
+    
+    # calculate radii in metric from radius of curvature formula
+    left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
+    right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+    
+    # averaged radius of curvature of left and right in real world space
+    # should represent approximately the center of the road
+    curve_rad = round((left_curverad + right_curverad)/2)
+    
+    return curve_rad
+
+def vehicle_offset(img, left_fit, right_fit):  
+    xm_per_pix = 3.7/700 
+    image_center = img.shape[1]/2
+    
+    ## find where lines hit the bottom of the image, closest to the car
+    left_low = get_val(img.shape[0],left_fit)
+    right_low = get_val(img.shape[0],right_fit)
+    
+    # pixel coordinate for center of lane
+    lane_center = (left_low+right_low)/2.0
+    
+    ## vehicle offset
+    distance = image_center - lane_center
+    
+    ## convert to metric
+    return (round(distance*xm_per_pix,5))
