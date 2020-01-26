@@ -88,7 +88,7 @@ def hist(img):
     histogram = np.sum(bottom_half, axis=0)
     return histogram
 
-def find_lines_sliding_window(binary_warped, display):
+def find_lines_sliding_window(binary_warped, window_search, display):
     
     histogram = np.sum(binary_warped[int(binary_warped.shape[0]/2):,:], axis=0)
     
@@ -195,7 +195,7 @@ def find_lines_sliding_window(binary_warped, display):
         plt.imshow(out_img)
         mpimg.imsave('./output_images/10-window_search.jpg',out_img)
 
-    return left_fit, right_fit, leftx, lefty, rightx, righty,
+    return left_fit, right_fit, leftx, lefty, rightx, righty, window_search
 
 def find_lines_from_prior(binary_warped, left_fit, right_fit, window_search, frame_count, display):
     

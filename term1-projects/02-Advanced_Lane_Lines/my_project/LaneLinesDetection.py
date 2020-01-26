@@ -144,7 +144,7 @@ class LaneLinesDetection:
 
         # Detect lane pixels and fit to find the lane boundary.
         if self.window_search:
-            left_fit, right_fit, leftx, lefty, rightx, righty, = tools.find_lines_sliding_window(top_down_view_image, self.display)
+            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_sliding_window(top_down_view_image, self.window_search, self.display)
         else:
             left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit, self.window_search, self.frame_number, self.display)
 
@@ -179,4 +179,5 @@ class LaneLinesDetection:
             cv2.destroyAllWindows()
         
         self.frame_number += 1
-
+        print('Frame: {}'.format(self.frame_number))
+        return processed_frame
