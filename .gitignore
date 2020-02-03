@@ -16,3 +16,6 @@ term1-projects/01-Finding_Lane_Lines/test_images_output/*
 !term1-projects/01-Finding_Lane_Lines/test_images_output/.placeholder
 
 .ipynb_checkpoints/
+
+# project5
+term1-projects/05-Extended_Kalman_Filter/build/
