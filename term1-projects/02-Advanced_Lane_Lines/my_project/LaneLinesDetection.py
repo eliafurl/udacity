@@ -12,15 +12,15 @@ class LaneLinesDetection:
 
     DONE    Use color transforms, gradients, etc., to create a thresholded binary image.
 
-    DONE    Apply a perspective transform to rectify binary image (\"birds-eye view\").
+    DONE    Apply a perspective transform to rectify binary image ("birds-eye view").
 
-        Detect lane pixels and fit to find the lane boundary.
+    DONE    Detect lane pixels and fit to find the lane boundary.
 
-            Determine the curvature of the lane and vehicle position with respect to center.
+    DONE    Determine the curvature of the lane and vehicle position with respect to center.
 
-            Warp the detected lane boundaries back onto the original image.
+    DONE    Warp the detected lane boundaries back onto the original image.
 
-            Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position
+    DONE    Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position
     '''
     def __init__(self, display, mode="image"):
         self.calibration_done = 0
@@ -150,11 +150,9 @@ class LaneLinesDetection:
 
         # Detect lane pixels and fit to find the lane boundary.
         if self.window_search:
-            print('---window_search---')
             left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_sliding_window(top_down_view_image, \
                                                                                     self.window_search, self.display)
         else:
-            print('---from_prior---')
             left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image,\
                                                                                      self.left_line.current_fit, self.right_line.current_fit,\
                                                                                      self.window_search, self.frame_number, self.display)
