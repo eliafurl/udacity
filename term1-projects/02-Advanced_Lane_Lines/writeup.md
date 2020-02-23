@@ -38,6 +38,7 @@ The goals / steps of this project are the following:
 Camera calibration is used to correct the image distortion introduced from the camera sensor.
 The calibration procedure has been implemented within the method `calibrate_camera` of the `LaneLinesDetection` class, in the file "LaneLinesDetection.py".
 
+
 The calibration procedure is based on the analysis of a set of chessboard images. For each image in the given folder, it finds the corners, that are points on the image. Corners are defined as the intersection between two edges. They are detected, after converting the color input image to grayscale, using the OpenCv function `cv2.findChessboardCorners`. At each set of corners image points, a set of object 3D points in world coordinates are associated. The object points are distributed on-grid without distortion. The camera calibration is performed using the function `cv2.calibrateCamera` that allows computing the distortion coefficients and the transformation matrix needed to transform 3D points to 2D points. These computed values are needed to perform distortion correction and are stored in the class `LaneLinesDetection`.
 
 ### Pipeline
