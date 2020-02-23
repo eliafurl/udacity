@@ -24,7 +24,7 @@ def image():
     images_for_calibration_path = './camera_cal/calibration*.jpg'
     LLD.calibrate_camera(images_for_calibration_path)
 
-    test_image_path = './test_images/test4.jpg'
+    test_image_path = './test_images/test2.jpg'
     test_image = cv2.imread(test_image_path)
 
     if display:
@@ -42,14 +42,14 @@ def video():
     print('Video Mode!\n')
 
     display = False
-    LLD = LaneLinesDetection(display=display)
+    LLD = LaneLinesDetection(display=display, mode="video")
     images_for_calibration_path = './camera_cal/calibration*.jpg'
     LLD.calibrate_camera(images_for_calibration_path)    
 
     filename = 'project_video.mp4'
     clip = VideoFileClip('./videos/'+filename)
-    out= clip.fl_image(LLD.process_image)
-    out.write_videofile('videos/processed_'+filename, audio=False, verbose=False)
+    out = clip.fl_image(LLD.process_image)
+    out.write_videofile('videos/processed_'+filename, audio=False)
     print("I'm DONE!")
 
 if __name__ == "__main__":

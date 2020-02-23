@@ -27,7 +27,7 @@ class Line():
     def update(self, fit, fitx, fity):
         if fit.any():
             if self.current_fit.any():
-                self.diffs = 0
+                self.diffs = np.array([0,0,0], dtype='float')
             else:
                 self.diffs = self.current_fit - fit
             #if sum(np.absolute(self.diffs)) < 100:

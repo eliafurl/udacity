@@ -22,7 +22,7 @@ class LaneLinesDetection:
 
             Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position
     '''
-    def __init__(self, display):
+    def __init__(self, display, mode="image"):
         self.calibration_done = 0
         self.cal_imgs_path = ''
         self.cameraMatrix = np.array([])
@@ -34,7 +34,12 @@ class LaneLinesDetection:
         self.M_inv = np.array([])
         self.left_line = Line()
         self.right_line = Line()
-        # self.video_mode = 0
+        self.curve_radius = 0.0
+        self.vehicle_offset = 0.0
+        if mode == "video":
+            self.video_mode = True
+        else:
+            self.video_mode = False
 
     def calibrate_camera(self, path):
         '''
@@ -83,7 +88,8 @@ class LaneLinesDetection:
     # lane lines detection pipeline
     def process_image(self, image):
 
-        #self.current_frame = image # DEBUG
+        if self.video_mode:
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
         # Warning if the camera is not calibrated
         if not self.calibration_done:
@@ -109,7 +115,7 @@ class LaneLinesDetection:
         if self.display:
             out_img = np.dstack((masked_binary_image, masked_binary_image, masked_binary_image))*255
             cv2.imshow('masked_binary_image', out_img)
-            cv2.waitKey(10)
+            cv2.waitKey(0)
             cv2.imwrite('./output_images/07-masked_binary_image.jpg', out_img)
             cv2.destroyAllWindows()
 
@@ -124,7 +130,7 @@ class LaneLinesDetection:
                 out_img = image.copy()
                 cv2.polylines(out_img,np.int32([source_points]),True,(0,0,255), 5)
                 cv2.imshow('Perspective transform before', out_img)
-                cv2.waitKey(10)
+                cv2.waitKey(0)
                 cv2.imwrite('./output_images/08-before_transformation.jpg',out_img)
                 cv2.destroyAllWindows()
 
@@ -144,9 +150,14 @@ class LaneLinesDetection:
 
         # Detect lane pixels and fit to find the lane boundary.
         if self.window_search:
-            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_sliding_window(top_down_view_image, self.window_search, self.display)
+            print('---window_search---')
+            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_sliding_window(top_down_view_image, \
+                                                                                    self.window_search, self.display)
         else:
-            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit, self.window_search, self.frame_number, self.display)
+            print('---from_prior---')
+            left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image,\
+                                                                                     self.left_line.current_fit, self.right_line.current_fit,\
+                                                                                     self.window_search, self.frame_number, self.display)
 
         self.left_line.update(left_fit, leftx, lefty)
         self.right_line.update(right_fit, rightx, righty)
@@ -162,15 +173,15 @@ class LaneLinesDetection:
 
         if self.frame_number==0 or self.frame_number%15==0:
             # measure curve radius
-            curve_radius = tools.measure_curve(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit)
-            print('curve_radius = {}'.format(curve_radius))
+            self.curve_radius = tools.measure_curve(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit)
+            print('curve_radius = {}'.format(self.curve_radius))
             # measure vehicle offset from the center of the lane
-            vehicle_offset = tools.vehicle_offset(highlighted_lane, self.left_line.current_fit, self.right_line.current_fit)
-            print('vehicle_offset = {}'.format(vehicle_offset))
+            self.vehicle_offset = tools.vehicle_offset(highlighted_lane, self.left_line.current_fit, self.right_line.current_fit)
+            print('vehicle_offset = {}'.format(self.vehicle_offset))
 
         font = cv2.FONT_HERSHEY_TRIPLEX
-        processed_frame = cv2.putText(highlighted_lane, 'Radius: '+str(curve_radius)+' m', (30, 40), font, 1, (0,255,0), 2)
-        processed_frame = cv2.putText(processed_frame, 'Offset: '+str(vehicle_offset)+' m', (30, 80), font, 1, (0,255,0), 2)
+        processed_frame = cv2.putText(highlighted_lane, 'Radius: '+str(self.curve_radius)+' m', (30, 40), font, 1, (0,255,0), 2)
+        processed_frame = cv2.putText(processed_frame, 'Offset: '+str(self.vehicle_offset)+' m', (30, 80), font, 1, (0,255,0), 2)
         
         if self.display:
             #cv2.imshow('processed_frame', processed_frame)
@@ -180,4 +191,8 @@ class LaneLinesDetection:
         
         self.frame_number += 1
         print('Frame: {}'.format(self.frame_number))
-        return processed_frame
+        
+        if self.video_mode:
+            return cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
+        else:
+            return processed_frame

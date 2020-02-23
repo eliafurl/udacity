@@ -49,11 +49,40 @@ def red_threshold(img, thresh=(0,255), display=False):
         cv2.imwrite('./output_images/06-r_threshold.jpg',out_img)
     return red_threshold
 
+def abs_sobel_threshold(img, orient='x', thresh=(0,255), display=False):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if orient == 'x':
+        abs_sobel = np.absolute(cv2.Sobel(gray, cv2.CV_64F, 1, 0))
+    if orient == 'y':
+        abs_sobel = np.absolute(cv2.Sobel(gray, cv2.CV_64F, 0, 1))
+    # Rescale back to 8 bit integer
+    scaled_sobel = np.uint8(255*abs_sobel/np.max(abs_sobel))
+    # Create a copy and apply the threshold
+    binary_output_sobel = np.zeros_like(scaled_sobel)
+    # Here I'm using inclusive (>=, <=) thresholds, but exclusive is ok too
+    binary_output_sobel[(scaled_sobel >= thresh[0]) & (scaled_sobel <= thresh[1])] = 1
+    if display:
+        out_img = np.dstack((binary_output_sobel, binary_output_sobel, binary_output_sobel))*255
+        cv2.imshow('sobel_threshold', out_img)
+        cv2.waitKey(10)
+        if orient == 'x':
+            cv2.imwrite('./output_images/06.1-sobel_x_threshold.jpg',out_img)
+        elif orient == 'y':
+            cv2.imwrite('./output_images/06.1-sobel_y_threshold.jpg',out_img)
+    # Return the result
+    return binary_output_sobel
+
 def convert_to_binary(img, display=False):
+    img = cv2.GaussianBlur(img, (3, 3), 0)
     red_binary = red_threshold(img, thresh=(150,255), display=display)
     hls_binary = hls_threshold(img, h_thresh=(15,100), s_thresh=(90,255), display=display)
-    binary_output = np.zeros_like(red_binary)
-    binary_output[(red_binary == 1) & (hls_binary == 1)] = 1
+    x_binary = abs_sobel_threshold(img,thresh=(25, 200), display=display)
+    y_binary = abs_sobel_threshold(img,thresh=(25, 200), orient='y', display=display)
+    binary_output_color = np.zeros_like(red_binary)
+    binary_output_color[(red_binary == 1) & (hls_binary == 1)] = 1
+    binary_output_sobel = np.zeros_like(red_binary)
+    binary_output_sobel[(x_binary == 1) & (y_binary == 1)] = 1
+    binary_output = cv2.bitwise_or(binary_output_color, binary_output_sobel)
     return binary_output
 
 def region_of_interest(img, vertices):
@@ -231,7 +260,7 @@ def find_lines_from_prior(binary_warped, left_fit, right_fit, window_search, fra
         plt.plot(left_fitx, ploty, color='yellow')
         plt.plot(right_fitx, ploty, color='yellow')
         plt.imshow(out_img)
-        mpimg.imsave('./output_images/10-window_search.jpg',out_img)
+        mpimg.imsave('./output_images/11-lines_from_prior.jpg',out_img)
 
 
     return left_fit, right_fit, leftx, lefty, rightx, righty, window_search
