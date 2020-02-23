@@ -38,8 +38,7 @@ The goals / steps of this project are the following:
 Camera calibration is used to correct the image distortion introduced from the camera sensor.
 The calibration procedure has been implemented within the method `calibrate_camera` of the `LaneLinesDetection` class, in the file "LaneLinesDetection.py".
 
-
-The calibration procedure is based on the analysis of a set of chessboard images. For each image in the given folder, it finds the corners, that are points on the image. Corners are defined as intersection between two edges. They are detected, after converting the color input image to grayscale, using the OpenCv function `cv2.findChessboardCorners`. At each set of corners image points, a set of object 3D points in world coordinates are associated. The object points are distributed on grid without distortion. The camera calibration is performed using the function `cv2.calibrateCamera` that allows to compute the distortion coefficients and the transformation matrix needed to transform 3D points to 2D points. These computed values are needed to perform distortion correction and are stored in the class `LaneLinesDetection`.
+The calibration procedure is based on the analysis of a set of chessboard images. For each image in the given folder, it finds the corners, that are points on the image. Corners are defined as the intersection between two edges. They are detected, after converting the color input image to grayscale, using the OpenCv function `cv2.findChessboardCorners`. At each set of corners image points, a set of object 3D points in world coordinates are associated. The object points are distributed on-grid without distortion. The camera calibration is performed using the function `cv2.calibrateCamera` that allows computing the distortion coefficients and the transformation matrix needed to transform 3D points to 2D points. These computed values are needed to perform distortion correction and are stored in the class `LaneLinesDetection`.
 
 ### Pipeline
 
@@ -49,31 +48,31 @@ The method `procces_image` is applied to each image, or frame of the video and i
 #### 1. Distortion correction
 
 First a distrortion correction is performed using the `cameraMatrix` matrix computed before. 
-
+* Original image
 ![alt text][image1]
+* Undistorted image
 ![alt text][image2]
 
 #### 2. Binary image creation for lines identification
 
-In order to detect lines of different colors under several light condition I used a combination of color and gradient thresholds to generate a binary image. These are implemented with the function `convert_to_binary` in `lane_lines_detection_tools.py`. 
+In order to detect lines of different colors under several light condition, I used a combination of color and gradient thresholds to generate a binary image. These are implemented with the function `convert_to_binary` in `lane_lines_detection_tools.py`. 
 
 ##### Color thresholding
 
 For the color thresholding these methods have been utilized:
 * H channel
-* S channel
-* Red channel
 ![alt text][image3]
+* S channel
 ![alt text][image4]
-![alt text][image5]
+* Red channel
 ![alt text][image6]
 
 ##### Gradient thresholding
 
 For the gradient thresholding the following methods have been implemented:
 * Sobel X derivative
-* Sobel Y derivative
 ![alt text][image7]
+* Sobel Y derivative
 ![alt text][image8]
 
 ##### Final result
@@ -98,14 +97,14 @@ destination_points = np.float32([[0.25 * x, y],
     [x - (0.25 * x), 0],
     [x - (0.25 * x), y]])
 ```
-This trasformation is applied to the binary image using the function `top_down_view` implemeted in `lane_lines_detection_tools.py`.
+This trasformation is applied to the binary image using the function `top_down_view` implemented in `lane_lines_detection_tools.py`.
 
 ![alt text][image10]
 ![alt text][image11]
 
 #### 4. Lane-line detection
 
-The binary image is processed by the function `find_lines_sliding_window` which performs a window search for the line pixels and then fits a second-order polinomial using `np.polyfit`. As a starting position for the window search the histogram of the bottom half of the image is used.
+The binary image is processed by the function `find_lines_sliding_window` which performs a window search for the line pixels and then fits a second-order polynomial using `np.polyfit`. As a starting position for the window search the histogram of the bottom half of the image is used.
 
 ![alt text][image12]
 
@@ -113,7 +112,7 @@ The binary image is processed by the function `find_lines_sliding_window` which 
 
 Before visualizing the results, the road curvature and vehicle position with respect to the center of the lane are computed using `measure_curve` and `vehicle_offset` implemented in `lane_lines_detection_tools.py`. The first performs the mean between the right and left lines curvature.
 
-Finally the detected lane boundaries are highlighted in the original image and the information regarding the curvature and vehicle offset are displayed.
+Finally, the detected lane boundaries are highlighted in the original image and the information regarding the curvature and vehicle offset are displayed.
 
 ![alt text][image14]
 
@@ -126,5 +125,12 @@ Here's a [link to my video result](./videos/processed_project_video.mp4)
 ---
 
 ### Discussion
-
-
+The parser in the `main.py` file allows having a single main file both for the video and the image mode. The program can be run as described in the following, where `mode = {image, video}`:
+```bash
+python3 my_project/main.py <mode>
+```
+The modularity of the code allows to modify and improve the pipeline without any major issue. My pipeline could be improved in several ways, such as:
+1. performing a sanity check of the polynomial fit before considering it;
+1. averaging the results of the polynomial fit of the last `n` iterations for a smoother estimation;
+1. using `find_lines_from_prior` instead of the sliding window approach, for increasing the overall performance, if the estimation of the polynomial at the previous step passes the sanity check.
+Due to a personal time limitation, I was not able to test these approaches.
