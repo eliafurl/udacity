@@ -19,7 +19,7 @@ def main():
 def image():
     print('Image Mode!\n')
 
-    display = True
+    display = False
     LLD = LaneLinesDetection(display=display)
     images_for_calibration_path = './camera_cal/calibration*.jpg'
     LLD.calibrate_camera(images_for_calibration_path)
@@ -33,7 +33,11 @@ def image():
         cv2.imwrite('./output_images/00-original_image.jpg',test_image)
         cv2.destroyAllWindows()
 
-    LLD.process_image(test_image)
+    processed_image = LLD.process_image(test_image)
+    cv2.imshow('Processed image', processed_image)
+    cv2.waitKey(0)
+    cv2.imwrite('./output_images/output_image.jpg',processed_image)
+    cv2.destroyAllWindows()
 
     print("I'm DONE!")
 
