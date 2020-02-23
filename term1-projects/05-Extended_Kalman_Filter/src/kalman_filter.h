@@ -45,6 +45,11 @@ class KalmanFilter {
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+  
+  /**
+   * Compute the radar measurement function
+   */
+  Eigen::VectorXd MeasurementFunction_Radar();
 
   // state vector
   Eigen::VectorXd x_;
