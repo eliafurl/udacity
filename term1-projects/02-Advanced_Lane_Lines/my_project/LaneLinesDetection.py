@@ -154,14 +154,15 @@ class LaneLinesDetection:
                                                                                     self.window_search, self.display)
         else:
             left_fit, right_fit, leftx, lefty, rightx, righty, self.window_search = tools.find_lines_from_prior(top_down_view_image,\
-                                                                                     self.left_line.current_fit, self.right_line.current_fit,\
+                                                                                     self.left_line.best_fit, self.right_line.best_fit,\
                                                                                      self.window_search, self.frame_number, self.display)
-
-        self.left_line.update(left_fit, leftx, lefty)
-        self.right_line.update(right_fit, rightx, righty)
+        # Sanity check
+        if tools.sanity_check(left_fit, leftx, right_fit, rightx):
+            self.left_line.updateLine(left_fit, leftx, lefty)
+            self.right_line.updateLine(right_fit, rightx, righty)
 
         # highlight lane boundaries
-        highlighted_lane = tools.lane_fill_poly(top_down_view_image, undistort_image, self.left_line.current_fit, self.right_line.current_fit, self.M_inv)
+        highlighted_lane = tools.lane_fill_poly(top_down_view_image, undistort_image, self.left_line.best_fit, self.right_line.best_fit, self.M_inv)
 
         if self.display:
             #cv2.imshow('highlighted_lane', highlighted_lane)
@@ -171,10 +172,10 @@ class LaneLinesDetection:
 
         if self.frame_number==0 or self.frame_number%15==0:
             # measure curve radius
-            self.curve_radius = tools.measure_curve(top_down_view_image, self.left_line.current_fit, self.right_line.current_fit)
+            self.curve_radius = tools.measure_curve(top_down_view_image, self.left_line.best_fit, self.right_line.best_fit)
             print('curve_radius = {}'.format(self.curve_radius))
             # measure vehicle offset from the center of the lane
-            self.vehicle_offset = tools.vehicle_offset(highlighted_lane, self.left_line.current_fit, self.right_line.current_fit)
+            self.vehicle_offset = tools.vehicle_offset(highlighted_lane, self.left_line.best_fit, self.right_line.best_fit)
             print('vehicle_offset = {}'.format(self.vehicle_offset))
 
         font = cv2.FONT_HERSHEY_TRIPLEX

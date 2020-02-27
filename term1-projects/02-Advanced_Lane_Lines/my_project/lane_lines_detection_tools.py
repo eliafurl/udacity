@@ -341,3 +341,12 @@ def vehicle_offset(img, left_fit, right_fit):
     
     ## convert to metric
     return (round(distance*xm_per_pix,5))
+
+def sanity_check(left_fit, leftx, right_fit, rightx, distance_threshold=(2.5, 5.0)):
+    xm_per_pix = 3.7/700 
+    current_lines_distance = (np.average(rightx) - np.average(leftx))*xm_per_pix
+    print("current_lines_distance = {}".format(current_lines_distance))
+    cond = current_lines_distance >= distance_threshold[0]\
+                and\
+                current_lines_distance <= distance_threshold[1]
+    return cond

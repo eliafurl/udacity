@@ -10,9 +10,9 @@ class Line():
         #average x values of the fitted line over the last n iterations
         self.bestx = None
         #polynomial coefficients averaged over the last n iterations
-        self.best_fit = None
+        self.best_fit = []
         #polynomial coefficients for the most recent fit
-        self.current_fit = np.array([False])
+        self.current_fit = np.array([0,0,0], dtype='float')
         #radius of curvature of the line in some units
         self.radius_of_curvature = None
         #distance in meters of vehicle center from the line
@@ -23,16 +23,30 @@ class Line():
         self.allx = None
         #y values for detected line pixels
         self.ally = None
+        #temporal window size
+        self.n = 10
 
-    def update(self, fit, fitx, fity):
-        if fit.any():
-            if self.current_fit.any():
-                self.diffs = np.array([0,0,0], dtype='float')
-            else:
-                self.diffs = self.current_fit - fit
-            #if sum(np.absolute(self.diffs)) < 100:
-            self.current_fit = fit
-            print('self.current_fit = \n{}'.format(self.current_fit))
-            self.detected = True
-            self.allx = fitx
-            self.ally = fity
+    def updateLine(self, fit, fitx, fity):
+        self.current_fit = fit
+        self.allx = fitx
+        self.ally = fity
+
+        self.updateBests()
+
+    def updateBests(self):
+        if self.best_fit == []:
+            self.best_fit = self.current_fit
+        else:
+            self.best_fit = incrementalAverage(self.best_fit, self.current_fit, self.n)
+
+        if len(self.recent_xfitted) > self.n:
+            self.recent_xfitted.pop(0)
+        self.recent_xfitted.append(np.average(self.allx))
+        
+        self.bestx = np.average(self.recent_xfitted)
+        
+
+
+def incrementalAverage(avg, x, n):
+    return (avg + ((x-avg)/n))
+
