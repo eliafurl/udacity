@@ -134,4 +134,6 @@ The modularity of the code allows to modify and improve the pipeline without any
 1. performing a sanity check of the polynomial fit before considering it;
 1. averaging the results of the polynomial fit of the last `n` iterations for a smoother estimation;
 1. using `find_lines_from_prior` instead of the sliding window approach, for increasing the overall performance, if the estimation of the polynomial at the previous step passes the sanity check.
-Due to a personal time limitation, I was not able to test these approaches.
+
+UPDATE:
+I have included the sanity check on the new estimates of the lines, verifying the estimated road width before performing the line update. I also implemented the averaging of the polynomial coefficients in a time window of `n = 10` frames, if the new estimates successfully pass the sanity check. These modifications improved quite significantly the performance of the pipeline.
