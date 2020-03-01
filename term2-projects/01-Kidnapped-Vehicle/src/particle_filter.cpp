@@ -83,7 +83,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
 
-  // TODO: Add Gaussian Noise to the velocity and yaw rate measurements. (std???)
+  /*
+  // Add Gaussian Noise to the velocity and yaw rate measurements. (std???)
   // Create random engine
   std::default_random_engine gen;
 
@@ -92,18 +93,33 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   std::normal_distribution<double> dist_yaw_rate(yaw_rate, std_pos[1]); // TODO
   double meas_velocity = dist_velocity(gen);
   double meas_yaw_rate = dist_yaw_rate(gen);
+  // Create random engine
+  std::default_random_engine gen;
+  */
 
   // TODO: Check division by zero (velocity/yaw_rate)
   // Update state of the particle given previous velocity and yaw rate measurements
   for (auto& particle : this->particles) {
 
-    double updated_theta = particle.theta + meas_yaw_rate*delta_t;
-    double updated_x = particle.x + meas_velocity/meas_yaw_rate * (sin(updated_theta) - sin(particle.theta));
-    double updated_y = particle.y + meas_velocity/meas_yaw_rate * (cos(particle.theta) - cos(updated_theta));
+    double updated_theta = particle.theta + yaw_rate*delta_t;
+    double updated_x = particle.x + velocity/yaw_rate * (sin(updated_theta) - sin(particle.theta));
+    double updated_y = particle.y + velocity/yaw_rate * (cos(particle.theta) - cos(updated_theta));
 
     particle.x = updated_x;
     particle.y = updated_y;
     particle.theta = updated_theta;
+
+    // Create random engine
+    std::default_random_engine gen;
+    // Create normal distributions for x, y and theta
+    std::normal_distribution<double> dist_x(particle.x, std_pos[0]);
+    std::normal_distribution<double> dist_y(particle.y, std_pos[1]);
+    std::normal_distribution<double> dist_theta(particle.theta, std_pos[2]);
+
+    // Update the particle state with the noisy measurement
+    particle.x = dist_x(gen);
+    particle.y = dist_y(gen);
+    particle.theta = dist_theta(gen);
 
   };
 
