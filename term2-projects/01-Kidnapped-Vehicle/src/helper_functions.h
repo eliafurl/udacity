@@ -48,6 +48,19 @@ struct LandmarkObs {
 };
 
 /**
+ * @brief Computes the transformation from car to global coordinates
+ * @param (x_0, y_0) traslation coordinates
+ * @param theta rotation angle
+ * @param (x, y) coordinates to be transformed
+ * @output (x_m, y_m)
+ */
+inline void coordinateTransformation(double x_0, double y_0, double theta0, double x, double y) {
+  auto x_m = cos(theta0)*x - sin(theta0)*y + x_0;
+  auto y_m = sin(theta0)*x + cos(theta0)*y + y_0;
+  //return x_m, y_m
+};
+
+/**
  * Computes the Euclidean distance between two 2D points.
  * @param (x1,y1) x and y coordinates of first point
  * @param (x2,y2) x and y coordinates of second point

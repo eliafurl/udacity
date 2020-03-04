@@ -32,7 +32,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    */
 
   //Set the number of particles
-  num_particles = 1000;
+  num_particles = 50;
 
   // Create random engine
   std::default_random_engine gen;
