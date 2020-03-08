@@ -97,14 +97,24 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   std::default_random_engine gen;
   */
 
-  // TODO: Check division by zero (velocity/yaw_rate)
   // Update state of the particle given previous velocity and yaw rate measurements
-  for (auto& particle : this->particles) {
+  for (Particle& particle : this->particles) {
 
-    double updated_theta = particle.theta + yaw_rate*delta_t;
-    double updated_x = particle.x + velocity/yaw_rate * (sin(updated_theta) - sin(particle.theta));
-    double updated_y = particle.y + velocity/yaw_rate * (cos(particle.theta) - cos(updated_theta));
+    double updated_theta;
+    double updated_x;
+    double updated_y;
 
+    if (fabs(yaw_rate) < 0.0001) {
+      updated_theta = particle.theta + yaw_rate*delta_t;
+      updated_x = particle.x + velocity * cos(particle.theta) * delta_t;
+      updated_y = particle.y + velocity * sin(particle.theta) * delta_t;
+    } else {
+      updated_theta = particle.theta + yaw_rate*delta_t;
+      updated_x = particle.x + velocity/yaw_rate * (sin(updated_theta) - sin(particle.theta));
+      updated_y = particle.y + velocity/yaw_rate * (cos(particle.theta) - cos(updated_theta));
+    }
+      
+    
     particle.x = updated_x;
     particle.y = updated_y;
     particle.theta = updated_theta;
@@ -120,8 +130,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     particle.x = dist_x(gen);
     particle.y = dist_y(gen);
     particle.theta = dist_theta(gen);
-
-  };
+    }
 
 }
 
@@ -136,6 +145,8 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
    *   during the updateWeights phase.
    */
 
+
+  //TODO: IMPLEMENT
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
@@ -154,6 +165,20 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+
+  //TODO: create new LandmarkObs structure because observations are const
+  for (Particle& particle : this->particles) {
+    for (LandmarkObs& observation : observations) {
+      
+      coordinateTransformation(particle.x, particle.y, particle.theta ,observation);
+      
+      if (dist(particle.x, particle.y, observation.x, observation.y) < sensor_range) {
+        //this->dataAssociation() //TODO: IMPLEMENT
+      }
+    } 
+  }
+
+  for (Particle& particle)
 
 }
 

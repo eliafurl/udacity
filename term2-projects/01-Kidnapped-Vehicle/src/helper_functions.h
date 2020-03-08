@@ -51,13 +51,11 @@ struct LandmarkObs {
  * @brief Computes the transformation from car to global coordinates
  * @param (x_0, y_0) traslation coordinates
  * @param theta rotation angle
- * @param (x, y) coordinates to be transformed
- * @output (x_m, y_m)
+ * @param observation: observation to be transformed
  */
-inline void coordinateTransformation(double x_0, double y_0, double theta0, double x, double y) {
-  auto x_m = cos(theta0)*x - sin(theta0)*y + x_0;
-  auto y_m = sin(theta0)*x + cos(theta0)*y + y_0;
-  //return x_m, y_m
+inline void coordinateTransformation(double x_0, double y_0, double theta0, LandmarkObs& observation) { 
+  observation.x = cos(theta0)*observation.x - sin(theta0)*observation.y + x_0;
+  observation.y = sin(theta0)*observation.x + cos(theta0)*observation.y + y_0;
 };
 
 /**
