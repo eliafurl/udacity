@@ -69,6 +69,7 @@ int main() {
             double sense_y = std::stod(j[1]["sense_y"].get<string>());
             double sense_theta = std::stod(j[1]["sense_theta"].get<string>());
 
+            std::cout << "Initialization..." << std::endl;
             pf.init(sense_x, sense_y, sense_theta, sigma_pos);
           } else {
             // Predict the vehicle's next state from previous
@@ -76,6 +77,7 @@ int main() {
             double previous_velocity = std::stod(j[1]["previous_velocity"].get<string>());
             double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<string>());
 
+            std::cout << "Prediction..." << std::endl;
             pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
           }
 
@@ -108,7 +110,9 @@ int main() {
           }
 
           // Update the weights and resample
+          std::cout << "Update weights..." << std::endl;
           pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
+          std::cout << "Resample..." << std::endl;
           pf.resample();
 
           // Calculate and output the average weighted error of the particle
