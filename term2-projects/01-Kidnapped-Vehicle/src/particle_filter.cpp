@@ -69,8 +69,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
   this->is_initialized = true;
 
-  std::cout << "Particle Filter Initialized!" << std::endl;
-
+  std::cout << "INITIALIZATION DONE!" << std::endl;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[],
@@ -130,7 +129,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     particle.y = dist_y(gen);
     particle.theta = dist_theta(gen);
     }
-
+  std::cout << "PREDICTION DONE!" << std::endl;
 }
 
 void ParticleFilter::dataAssociation(vector<LandmarkObs> transformed_observations,
@@ -248,6 +247,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     particles[i].weight /= weight_normalizer;
     weights[i] = particles[i].weight;
   }
+  std::cout << "WEIGHTS UPDATE DONE!" << std::endl;
 }
 
 void ParticleFilter::resample() {
@@ -258,6 +258,24 @@ void ParticleFilter::resample() {
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
 
+  std::vector<Particle> resampled_particles;
+
+  // Create particles distribution from particles weights
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::discrete_distribution<> d(this->weights.begin(), this->weights.end());
+
+  // Resample
+  for(unsigned int i=0; i < this->num_particles; i++){
+    const int index = d(gen);
+    resampled_particles.emplace_back(particles[index]);
+  }
+
+  this->particles.clear();
+  this->weights.clear();
+  // New set of particles
+  this->particles = resampled_particles;
+  std::cout << "RESAMPLE DONE!" << std::endl;
 }
 
 void ParticleFilter::SetAssociations(Particle& particle,
