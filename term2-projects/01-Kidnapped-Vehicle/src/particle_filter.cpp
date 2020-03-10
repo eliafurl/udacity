@@ -32,7 +32,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    */
 
   //Set the number of particles
-  num_particles = 50;
+  num_particles = 3;
 
   // Create random engine
   std::default_random_engine gen;
@@ -63,7 +63,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     };
 
     this->particles.push_back(particle);
-    // this->weights.push_back(weight);
+    this->weights.push_back(weight);
 
   }
 
@@ -143,7 +143,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> transformed_observation
    *   during the updateWeights phase.
    */
 
-
+  //  TODO: check, transformed_observation.id is always 0
   for (LandmarkObs& transformed_observation : transformed_observations) {
 
     transformed_observation.id = -1;
@@ -182,6 +182,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   for (Particle& particle : this->particles) {
     std::vector<LandmarkObs> transformed_observations; //transformed observations from vehicle to world coordinate frame
     std::vector<LandmarkObs> inRange_landmarks;
+    std::cout << "[updateWeights] Coordinate transformation..." << std::endl; //DEBUG
     for (const LandmarkObs& observation : observations) {
 
       LandmarkObs transformed_observation;
@@ -191,7 +192,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         transformed_observations.push_back(transformed_observation);
       }
     }
-
+    std::cout << "[updateWeights] inRange_landmarks creation..." << std::endl; //DEBUG
     for (const Map::single_landmark_s& map_landmark : map_landmarks.landmark_list) {
 
       if (dist(particle.x, particle.y, map_landmark.x_f, map_landmark.y_f) < sensor_range) {
@@ -200,10 +201,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       }
     }
 
+    std::cout << "[updateWeights] dataAssociation..." << std::endl; //DEBUG
     // Perform the data association between the observed landmarks (transformed_observations) and the visible landmarks (inRange_landmarks)
     this->dataAssociation(transformed_observations, inRange_landmarks);
 
     // Perform the actual weight update
+    std::cout << "[updateWeights] multi-variate Gaussia evaluation..." << std::endl; //DEBUG
+
     particle.weight = 1.0; // reset the particle weight
 
     // Prepare data structures for storing associations for the single particle
@@ -234,6 +238,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
       // Store associations and observations
       associations.emplace_back(transformed_observation.id);
+      std::cout << "transformed_observation.id = " << transformed_observation.id << std::endl;
       sense_x.emplace_back(trans_obs_x);
       sense_y.emplace_back(trans_obs_y);
 
@@ -241,11 +246,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
     weight_normalizer += particle.weight;
   }
-
+  std::cout << "[updateWeights] weigths normalization..." << std::endl; //DEBUG
   // Normalize all perticles' weights and store them
-  for (int i = 0; i < particles.size(); i++) {
-    particles[i].weight /= weight_normalizer;
-    weights[i] = particles[i].weight;
+  for (int i = 0; i < this->num_particles; i++) {
+    this->particles[i].weight /= weight_normalizer;
+    this->weights[i] = this->particles[i].weight;
   }
   std::cout << "WEIGHTS UPDATE DONE!" << std::endl;
 }
@@ -272,7 +277,7 @@ void ParticleFilter::resample() {
   }
 
   this->particles.clear();
-  this->weights.clear();
+  // this->weights.clear();
   // New set of particles
   this->particles = resampled_particles;
   std::cout << "RESAMPLE DONE!" << std::endl;

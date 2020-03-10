@@ -146,7 +146,8 @@ int main() {
           msgJson["best_particle_sense_y"] = pf.getSenseCoord(best_particle, "Y");
 
           auto msg = "42[\"best_particle\"," + msgJson.dump() + "]";
-          // std::cout << msg << std::endl;
+
+          std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }  // end "telemetry" if
       } else {
