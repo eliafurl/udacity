@@ -49,13 +49,15 @@ struct LandmarkObs {
 
 /**
  * @brief Computes the transformation from car to global coordinates
- * @param (x_0, y_0) traslation coordinates
- * @param theta rotation angle
+ * @param particle_x, particle_y, particle_theta traslation coordinates and rotation angle
  * @param observation: observation to be transformed
+ * @param transformed_observation: object for storing the transformed observation
  */
-inline void coordinateTransformation(double x_0, double y_0, double theta0, LandmarkObs& observation) { 
-  observation.x = cos(theta0)*observation.x - sin(theta0)*observation.y + x_0;
-  observation.y = sin(theta0)*observation.x + cos(theta0)*observation.y + y_0;
+inline void coordinateTransformation(double particle_x, double particle_y, double particle_theta,
+                                      const LandmarkObs& observation, LandmarkObs& transformed_observation) {
+  transformed_observation.id = observation.id;
+  transformed_observation.x = cos(particle_theta)*observation.x - sin(particle_theta)*observation.y + particle_x;
+  transformed_observation.y = sin(particle_theta)*observation.x + cos(particle_theta)*observation.y + particle_y;
 };
 
 /**
