@@ -69,7 +69,7 @@ int main() {
             double sense_y = std::stod(j[1]["sense_y"].get<string>());
             double sense_theta = std::stod(j[1]["sense_theta"].get<string>());
 
-            std::cout << "Initialization..." << std::endl;
+            // std::cout << "Initialization..." << std::endl; // DEBUG
             pf.init(sense_x, sense_y, sense_theta, sigma_pos);
           } else {
             // Predict the vehicle's next state from previous
@@ -77,7 +77,7 @@ int main() {
             double previous_velocity = std::stod(j[1]["previous_velocity"].get<string>());
             double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<string>());
 
-            std::cout << "Prediction..." << std::endl;
+            // std::cout << "Prediction..." << std::endl; // DEBUG
             pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
           }
 
@@ -110,9 +110,9 @@ int main() {
           }
 
           // Update the weights and resample
-          std::cout << "Update weights..." << std::endl;
+          // std::cout << "Update weights..." << std::endl; // DEBUG
           pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
-          std::cout << "Resample..." << std::endl;
+          // std::cout << "Resample..." << std::endl; // DEBUG
           pf.resample();
 
           // Calculate and output the average weighted error of the particle
@@ -147,7 +147,7 @@ int main() {
 
           auto msg = "42[\"best_particle\"," + msgJson.dump() + "]";
 
-          std::cout << msg << std::endl;
+          // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }  // end "telemetry" if
       } else {

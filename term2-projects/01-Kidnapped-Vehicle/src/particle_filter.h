@@ -60,11 +60,11 @@ class ParticleFilter {
   /**
    * dataAssociation Finds which observations correspond to which landmarks
    *   (likely by using a nearest-neighbors data association).
-   * @param predicted Vector of predicted landmark observations
-   * @param observations Vector of landmark observations
+   * @param transformed_observations Vector of predicted landmark observations
+   * @param inRange_landmarks Vector of in sensor range landmarks
    */
-  void dataAssociation(std::vector<LandmarkObs> predicted,
-                       std::vector<LandmarkObs>& observations);
+  void dataAssociation(std::vector<LandmarkObs>& transformed_observations,
+                       std::vector<LandmarkObs> inRange_landmarks);
 
   /**
    * updateWeights Updates the weights for each particle based on the likelihood
