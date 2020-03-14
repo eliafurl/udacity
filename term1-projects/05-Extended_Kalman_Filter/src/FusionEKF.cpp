@@ -77,10 +77,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // and initialize state.
       float px = meas_data(0)*cos(meas_data(1));
       float py = meas_data(0)*sin(meas_data(1));
-      float vx = meas_data(2)*cos(meas_data(1));
-      float vy = meas_data(2)*sin(meas_data(1));
+      float vx = 0;
+      float vy = 0;
       x0 << px, py, vx, vy;
-      
+
       previous_timestamp_ = measurement_pack.timestamp_;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -88,7 +88,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float px = meas_data(0);
       float py = meas_data(1);
       x0 << px, py, 0.0, 0.0;
-      
+
       previous_timestamp_ = measurement_pack.timestamp_;
     }
     else {
@@ -96,21 +96,21 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       cout << "Sensor type Error - Not a supported sensor!" << endl;
       return;
     }
-    
+
     auto P = MatrixXd(4, 4);
     auto F = MatrixXd(4, 4);
     auto Q = MatrixXd(4, 4);
-    
+
     P << 1, 0, 0, 0,
          0, 1, 0, 0,
          0, 0, 1000, 0,
          0, 0, 0, 1000;
-    
-    F << 1.0, 0.0, 0.0, 0.0,
-         0.0, 1.0, 0.0, 0.0,
+
+    F << 1.0, 0.0, 1.0, 0.0,
+         0.0, 1.0, 0.0, 1.0,
          0.0, 0.0, 1.0, 0.0,
          0.0, 0.0, 0.0, 1.0;
-    
+
     Q << 0.0, 0.0, 0.0, 0.0,
          0.0, 0.0, 0.0, 0.0,
          0.0, 0.0, 0.0, 0.0,
@@ -128,12 +128,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
 
   /**
-   * Time is measured in seconds. 
+   * Time is measured in seconds.
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
   // Compute elapsed time
   auto d_timestamp = (measurement_pack.timestamp_ - previous_timestamp_)/ 1000000.0;
-  
+  previous_timestamp_ = measurement_pack.timestamp_;
+
   float dt_2 = d_timestamp * d_timestamp;
   float dt_3 = dt_2 * d_timestamp;
   float dt_4 = dt_3 * d_timestamp;
@@ -147,7 +148,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
               0, dt_4/4*noise_ay_, 0, dt_3/2*noise_ay_,
               dt_3/2*noise_ax_, 0, dt_2*noise_ax_, 0,
               0, dt_3/2*noise_ay_, 0, dt_2*noise_ay_;
-  
+
   ekf_.Predict();
   /**
    * Update:
