@@ -2,27 +2,12 @@
 #define HELPERS_H
 
 #include <math.h>
-#include <string>
+// #include <string>
 #include <vector>
 
 // for convenience
-using std::string;
+// using std::string;
 using std::vector;
-
-// Checks if the SocketIO event has JSON data.
-// If there is data the JSON object in string format will be returned,
-//   else the empty string "" will be returned.
-string hasData(string s) {
-  auto found_null = s.find("null");
-  auto b1 = s.find_first_of("[");
-  auto b2 = s.find_first_of("}");
-  if (found_null != string::npos) {
-    return "";
-  } else if (b1 != string::npos && b2 != string::npos) {
-    return s.substr(b1, b2 - b1 + 2);
-  }
-  return "";
-}
 
 //
 // Helper functions related to waypoints and converting from XY to Frenet
@@ -40,7 +25,7 @@ double distance(double x1, double y1, double x2, double y2) {
 }
 
 // Calculate closest waypoint to current x, y position
-int ClosestWaypoint(double x, double y, const vector<double> &maps_x, 
+int ClosestWaypoint(double x, double y, const vector<double> &maps_x,
                     const vector<double> &maps_y) {
   double closestLen = 100000; //large number
   int closestWaypoint = 0;
@@ -59,7 +44,7 @@ int ClosestWaypoint(double x, double y, const vector<double> &maps_x,
 }
 
 // Returns next waypoint of the closest waypoint
-int NextWaypoint(double x, double y, double theta, const vector<double> &maps_x, 
+int NextWaypoint(double x, double y, double theta, const vector<double> &maps_x,
                  const vector<double> &maps_y) {
   int closestWaypoint = ClosestWaypoint(x,y,maps_x,maps_y);
 
@@ -82,8 +67,8 @@ int NextWaypoint(double x, double y, double theta, const vector<double> &maps_x,
 }
 
 // Transform from Cartesian x,y coordinates to Frenet s,d coordinates
-vector<double> getFrenet(double x, double y, double theta, 
-                         const vector<double> &maps_x, 
+vector<double> getFrenet(double x, double y, double theta,
+                         const vector<double> &maps_x,
                          const vector<double> &maps_y) {
   int next_wp = NextWaypoint(x,y, theta, maps_x,maps_y);
 
@@ -127,8 +112,8 @@ vector<double> getFrenet(double x, double y, double theta,
 }
 
 // Transform from Frenet s,d coordinates to Cartesian x,y
-vector<double> getXY(double s, double d, const vector<double> &maps_s, 
-                     const vector<double> &maps_x, 
+vector<double> getXY(double s, double d, const vector<double> &maps_s,
+                     const vector<double> &maps_x,
                      const vector<double> &maps_y) {
   int prev_wp = -1;
 
@@ -152,6 +137,18 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s,
   double y = seg_y + d*sin(perp_heading);
 
   return {x,y};
+}
+
+int DetectLaneFromCarPos(double car_d) {
+  if (car_d < 4) {
+    return 0;
+  }
+  else if (car_d >= 4 && car_d < 8) {
+    return 1;
+  }
+  else {
+    return 2;
+  }
 }
 
 #endif  // HELPERS_H
