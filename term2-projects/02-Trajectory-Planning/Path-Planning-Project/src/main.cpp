@@ -121,11 +121,11 @@ int main() {
            *   sequentially every .02 seconds
            */
 
-          path_planner.upadtePathPlannerState(previous_path_x, previous_path_y, ego_car);
+          path_planner.UpadtePathPlannerState(previous_path_x, previous_path_y, ego_car);
 
-          auto goal = path_planner.behaviorPlanner(sensor_fusion);
+          auto goal = path_planner.BehaviorPlanner(sensor_fusion);
 
-          auto next_trajectory = path_planner.trajectoryGeneration(goal);
+          auto next_trajectory = path_planner.TrajectoryGeneration(goal);
 
           vector<double> next_x_vals = next_trajectory[0];
           vector<double> next_y_vals = next_trajectory[1];
