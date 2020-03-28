@@ -1,7 +1,6 @@
 #ifndef __PATH_PLANNER_H__
 #define __PATH_PLANNER_H__
 
-#include <iostream>
 #include <vector>
 
 struct CarState {

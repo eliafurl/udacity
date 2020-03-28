@@ -1,15 +1,28 @@
+#include <iostream>
 #include "PathPlanner.h"
 #include "spline.h"
 #include "helpers.h"
 
-PathPlanner::PathPlanner(std::vector<double> &map_waypoints_x, std::vector<double> &map_waypoints_y, std::vector<double> &map_waypoints_s) {
+namespace Constants
+{
+    const double MAX_VELOCITY = 49.0;       // mph
+    const double MAX_ACCELERATION = 0.224;  //
+    const double SAFETY_DISTANCE = 30.0;    // m
+    
+}
+
+using namespace Constants;
+
+PathPlanner::PathPlanner(std::vector<double> &map_waypoints_x, std::vector<double> &map_waypoints_y, std::vector<double> &map_waypoints_s)
+{
     this->ref_vel = 0.0;
     this->map_waypoints_x = map_waypoints_x;
     this->map_waypoints_y = map_waypoints_y;
     this->map_waypoints_s = map_waypoints_s;
 }
 
-void PathPlanner::upadtePathPlannerState(vector<double> &previous_path_x, std::vector<double> &previous_path_y, CarState &ego_car) {
+void PathPlanner::upadtePathPlannerState(vector<double> &previous_path_x, std::vector<double> &previous_path_y, CarState &ego_car)
+{
     this->path_size = previous_path_x.size();
     this->previous_path_x = previous_path_x;
     this->previous_path_y = previous_path_y;
@@ -17,13 +30,16 @@ void PathPlanner::upadtePathPlannerState(vector<double> &previous_path_x, std::v
     this->ego_lane = DetectLaneFromCarPos(ego_car.d);
 }
 
-vector<double> PathPlanner::behaviorPlanner(std::vector<std::vector<double>> &sensor_fusion) {
+vector<double> PathPlanner::behaviorPlanner(std::vector<std::vector<double>> &sensor_fusion)
+{
 
     bool too_close = false;
-    for (int i = 0; i < sensor_fusion.size(); i++) {
+    for (int i = 0; i < sensor_fusion.size(); i++)
+    {
         float d = sensor_fusion[i][6];
         // check if car is in ego lane
-        if (d < (2 + 4*this->ego_lane + 2) && d > (2 + 4*this->ego_lane - 2)) {
+        if (d < (2 + 4*this->ego_lane + 2) && d > (2 + 4*this->ego_lane - 2))
+        {
             double vx = sensor_fusion[i][3];
             double vy = sensor_fusion[i][4];
             double check_speed = sqrt(vx*vx + vy*vy);
@@ -31,27 +47,33 @@ vector<double> PathPlanner::behaviorPlanner(std::vector<std::vector<double>> &se
 
             check_car_s += ((double)this->path_size*0.2*check_speed);
             // if the car in front is closer then 30m -> do something
-            if ((check_car_s > this->ego_car.s) && ((check_car_s - this->ego_car.s) < 30)) {
+            if ((check_car_s > this->ego_car.s) && ((check_car_s - this->ego_car.s) < SAFETY_DISTANCE))
+            {
             //ref_vel = 29.5;
             // too_close = true;
-                if (this->ego_lane > 0) {
+                if (this->ego_lane > 0)
+                {
                     this->ego_lane = 0;
                 }
             }
         }
     }
 
-    if (too_close) {
-        this->ref_vel -= 0.224;
-    } else if (this->ref_vel < 49.5) {
-        this->ref_vel += 0.224;
+    if (too_close)
+    {
+        this->ref_vel -= MAX_ACCELERATION;
+    }
+    else if (this->ref_vel < MAX_VELOCITY)
+    {
+        this->ref_vel += MAX_ACCELERATION;
     }
 
     std::vector<double> goal = {0.0, 0.0};
     return goal;
 }
 
-std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<double> &goal) {
+std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<double> &goal)
+{
 
         std::vector<double> ptsx;
         std::vector<double> ptsy;
@@ -59,7 +81,8 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
         double ref_y = this->ego_car.y;
         double ref_yaw = deg2rad(this->ego_car.yaw);
 
-        if (this->path_size < 2) {
+        if (this->path_size < 2)
+        {
             double prev_car_x = this->ego_car.x - cos(this->ego_car.yaw);
             double prev_car_y = this->ego_car.y - sin(this->ego_car.yaw);
 
@@ -69,7 +92,9 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
             ptsy.push_back(prev_car_y);
             ptsy.push_back(this->ego_car.y);
 
-        } else {
+        }
+        else
+        {
             ref_x = previous_path_x[this->path_size-1];
             ref_y = previous_path_y[this->path_size-1];
 
@@ -95,7 +120,8 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
         ptsy.push_back(next_wp1[1]);
         ptsy.push_back(next_wp2[1]);
 
-        for (int i=0; i < ptsx.size(); i++) {
+        for (int i=0; i < ptsx.size(); i++)
+        {
             double shift_x = ptsx[i] - ref_x;
             double shift_y = ptsy[i] - ref_y;
 
@@ -110,7 +136,8 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
         std::vector<double> next_trajectory_x;
         std::vector<double> next_trajectory_y;
 
-        for (int i=0; i < previous_path_x.size(); i++) {
+        for (int i=0; i < previous_path_x.size(); i++)
+        {
             next_trajectory_x.push_back(previous_path_x[i]);
             next_trajectory_y.push_back(previous_path_y[i]);
         }
@@ -121,7 +148,8 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
 
         double x_add_on = 0.0;
 
-        for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
+        for (int i = 1; i <= 50 - previous_path_x.size(); i++)
+        {
             double N = (target_dist/(0.02*ref_vel/2.24));
             double x_point = x_add_on + (target_x)/N;
             double y_point = s(x_point);
@@ -141,7 +169,8 @@ std::vector<std::vector<double>> PathPlanner::trajectoryGeneration(std::vector<d
             next_trajectory_y.push_back(y_point);
         }
 
-        for (int i = 0; i < next_trajectory_x.size(); i++) {
+        for (int i = 0; i < next_trajectory_x.size(); i++)
+        {
             std::cout << "next x[" << i << "] = " << next_trajectory_x[i] << std::endl;
             std::cout << "next y[" << i << "] = " << next_trajectory_y[i] << std::endl;
         }
