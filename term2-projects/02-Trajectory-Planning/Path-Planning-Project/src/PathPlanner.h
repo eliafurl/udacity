@@ -27,23 +27,23 @@ private:
     std::vector<double> map_waypoints_s;
 
 public:
-    PathPlanner(std::vector<double> &map_waypoints_x, std::vector<double> &map_waypoints_y, std::vector<double> &map_waypoints_s);
+    PathPlanner(std::vector<double>& map_waypoints_x, std::vector<double>& map_waypoints_y, std::vector<double>& map_waypoints_s);
     ~PathPlanner() {};
 
-    void UpadtePathPlannerState(std::vector<double> &previous_path_x, std::vector<double> &previous_path_y, CarState &ego_car);
+    void UpadtePathPlannerState(std::vector<double>& previous_path_x, std::vector<double>& previous_path_y, CarState& ego_car);
 
-    std::vector<double> TryChangingLane(std::vector<std::vector<double>> &cars_left_lane,
-                                        std::vector<std::vector<double>> &cars_right_lane, double front_car_speed);
+    std::vector<double> BehaviorPlanner(std::vector<std::vector<double>>& sensor_fusion);
 
-    bool CheckLane(std::vector<std::vector<double>> &cars_in_lane);
+    std::vector<double> TryChangingLane(std::vector<std::vector<double>>& cars_left_lane,
+                                        std::vector<std::vector<double>>& cars_right_lane, double front_car_speed);
 
-    int BestLane(std::vector<std::vector<double>> &cars_left_lane, std::vector<std::vector<double>> &cars_right_lane);
+    bool CheckLane(std::vector<std::vector<double>>& cars_in_lane);
+
+    int BestLane(std::vector<std::vector<double>>& cars_left_lane, std::vector<std::vector<double>>& cars_right_lane);
 
     void UpdateSpeed(double speed_to_match = -1.0);
 
-    std::vector<double> BehaviorPlanner(std::vector<std::vector<double>> &sensor_fusion);
-
-    std::vector<std::vector<double>> TrajectoryGeneration(std::vector<double> &goal);
+    std::vector<std::vector<double>> TrajectoryGeneration(std::vector<double>& goal);
 };
 
 #endif // __PATH_PLANNER_H__

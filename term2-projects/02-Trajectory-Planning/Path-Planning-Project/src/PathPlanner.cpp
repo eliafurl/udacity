@@ -1,5 +1,4 @@
 #include <iostream>
-#include <math.h>
 #include "PathPlanner.h"
 #include "spline.h"
 #include "helpers.h"
@@ -15,7 +14,7 @@ namespace Constants
 
 using namespace Constants;
 
-PathPlanner::PathPlanner(std::vector<double> &map_waypoints_x, std::vector<double> &map_waypoints_y, std::vector<double> &map_waypoints_s)
+PathPlanner::PathPlanner(std::vector<double>& map_waypoints_x, std::vector<double>& map_waypoints_y, std::vector<double>& map_waypoints_s)
 {
     this->ref_vel = 0.0;
     this->map_waypoints_x = map_waypoints_x;
@@ -23,7 +22,7 @@ PathPlanner::PathPlanner(std::vector<double> &map_waypoints_x, std::vector<doubl
     this->map_waypoints_s = map_waypoints_s;
 }
 
-void PathPlanner::UpadtePathPlannerState(vector<double> &previous_path_x, std::vector<double> &previous_path_y, CarState &ego_car)
+void PathPlanner::UpadtePathPlannerState(vector<double>& previous_path_x, std::vector<double>& previous_path_y, CarState& ego_car)
 {
     this->path_size = previous_path_x.size();
     this->previous_path_x = previous_path_x;
@@ -32,7 +31,7 @@ void PathPlanner::UpadtePathPlannerState(vector<double> &previous_path_x, std::v
     this->ego_lane = DetectLaneFromCarPos(ego_car.d);
 }
 
-vector<double> PathPlanner::BehaviorPlanner(std::vector<std::vector<double>> &sensor_fusion)
+vector<double> PathPlanner::BehaviorPlanner(std::vector<std::vector<double>>& sensor_fusion)
 {
     bool should_change_lane = false;
     double front_car_speed;
@@ -89,46 +88,10 @@ vector<double> PathPlanner::BehaviorPlanner(std::vector<std::vector<double>> &se
         UpdateSpeed();
         return {this->ego_car.s + SAFETY_DISTANCE, 2+4*this->ego_lane, this->ref_vel};
     }
-/*
-    bool too_close = false;
-    for (int i = 0; i < sensor_fusion.size(); i++)
-    {
-        float d = sensor_fusion[i][6];
-        // check if car is in ego lane
-        if (d < (2 + 4*this->ego_lane + 2) && d > (2 + 4*this->ego_lane - 2))
-        {
-            double vx = sensor_fusion[i][3];
-            double vy = sensor_fusion[i][4];
-            double check_speed = sqrt(vx*vx + vy*vy);
-            double check_car_s = sensor_fusion[i][5];
-
-            check_car_s += ((double)this->path_size*0.2*check_speed);
-            // if the car in front is closer then 30m -> do something
-            if ((check_car_s > this->ego_car.s) && ((check_car_s - this->ego_car.s) < SAFETY_DISTANCE))
-            {
-            //ref_vel = 29.5;
-            // too_close = true;
-                if (this->ego_lane > 0)
-                {
-                    this->ego_lane = 0;
-                }
-            }
-        }
-    }
-
-    if (too_close)
-    {
-        this->ref_vel -= MAX_ACCELERATION;
-    }
-    else if (this->ref_vel < MAX_VELOCITY)
-    {
-        this->ref_vel += MAX_ACCELERATION;
-    }
-*/
 }
 
-vector<double> PathPlanner::TryChangingLane(std::vector<std::vector<double>> &cars_left_lane,
-                                            std::vector<std::vector<double>> &cars_right_lane, double front_car_speed)
+vector<double> PathPlanner::TryChangingLane(std::vector<std::vector<double>>& cars_left_lane,
+                                            std::vector<std::vector<double>>& cars_right_lane, double front_car_speed)
 {
     // Check lanes
     bool is_left_lane_safe = CheckLane(cars_left_lane);
@@ -161,7 +124,7 @@ vector<double> PathPlanner::TryChangingLane(std::vector<std::vector<double>> &ca
     }
 }
 
-bool PathPlanner::CheckLane(std::vector<std::vector<double>> &cars_in_lane)
+bool PathPlanner::CheckLane(std::vector<std::vector<double>>& cars_in_lane)
 {
     // Check all cars from the desired lane
     for (auto detected_car : cars_in_lane)
@@ -195,7 +158,7 @@ bool PathPlanner::CheckLane(std::vector<std::vector<double>> &cars_in_lane)
   return true;
 }
 
-int PathPlanner::BestLane(std::vector<std::vector<double>> &cars_left_lane, std::vector<std::vector<double>> &cars_right_lane)
+int PathPlanner::BestLane(std::vector<std::vector<double>>& cars_left_lane, std::vector<std::vector<double>>& cars_right_lane)
 {
     double closest_left_car_dist = INFINITY;
     double closest_right_car_dist = INFINITY;
@@ -246,18 +209,6 @@ int PathPlanner::BestLane(std::vector<std::vector<double>> &cars_left_lane, std:
     {
         return 2;
     }
-
-/*
-    // go left if the closest car is in the right lane, otherwise go right
-    if (closest_left_car_dist >= closest_right_car_dist)
-    {
-        return -1;
-    }
-    else
-    {
-        return 1;
-    }
-*/
 }
 
 void PathPlanner::UpdateSpeed(double speed_to_match)
@@ -287,7 +238,7 @@ void PathPlanner::UpdateSpeed(double speed_to_match)
 
 }
 
-std::vector<std::vector<double>> PathPlanner::TrajectoryGeneration(std::vector<double> &goal)
+std::vector<std::vector<double>> PathPlanner::TrajectoryGeneration(std::vector<double>& goal)
 {
 
         std::vector<double> ptsx;
@@ -324,17 +275,9 @@ std::vector<std::vector<double>> PathPlanner::TrajectoryGeneration(std::vector<d
         }
 
         std::vector<double> next_wp0 = getXY(goal[0], goal[1], this->map_waypoints_s, this->map_waypoints_x, this->map_waypoints_y);
-        // std::vector<double> next_wp0 = getXY(this->ego_car.s+30, 2+4*this->ego_lane, this->map_waypoints_s, this->map_waypoints_x, this->map_waypoints_y);
-        // std::vector<double> next_wp1 = getXY(this->ego_car.s+60, 2+4*this->ego_lane, this->map_waypoints_s, this->map_waypoints_x, this->map_waypoints_y);
-        // std::vector<double> next_wp2 = getXY(this->ego_car.s+90, 2+4*this->ego_lane, this->map_waypoints_s, this->map_waypoints_x, this->map_waypoints_y);
 
         ptsx.push_back(next_wp0[0]);
-        // ptsx.push_back(next_wp1[0]);
-        // ptsx.push_back(next_wp2[0]);
-
         ptsy.push_back(next_wp0[1]);
-        // ptsy.push_back(next_wp1[1]);
-        // ptsy.push_back(next_wp2[1]);
 
         for (int i=0; i < ptsx.size(); i++)
         {
