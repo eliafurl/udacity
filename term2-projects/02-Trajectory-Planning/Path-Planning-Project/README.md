@@ -140,6 +140,8 @@ that's just a guess.
 One last note here: regardless of the IDE used, every submitted project must
 still be compilable with cmake and make./
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+# Project Writeup
+The path planner has been implemented in the class `PathPlanner`. After the initialization of the `PathPlanner` with the map waypoints, the pipeline for generating the new trajectory to be actuated is the following:
+1. First it is updated the state of the `PathPlanner`, using the method `UpadtePathPlannerState`, with the information regarding the previous path, the ego car state using the defined `CarState = {x, y, s, d, yaw, speed}` struct, and the ego car lane. These informations will be used in the next steps.
+2. Decide which is the goal position for the new trajectory with the method `BehaviorPlanner`. After having checked if the car should change lane because in front there is a slower vehicle, we set the goal in the safest lane and if the car couldn't change lane it slowes down matching the speed of the vehicle in front.
+3. Finally the trajectory is generated usign a spline with the end point the one identified in the previous step.
