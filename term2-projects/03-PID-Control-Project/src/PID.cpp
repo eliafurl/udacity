@@ -34,6 +34,10 @@ void PID::Init(double Kp_, double Ki_, double Kd_, bool twiddle)
         this->twiddle.delta_gains = std::vector<double>(this->gains.size(), 0.1);
         this->twiddle.state = START;
     }
+    else
+    {
+        this->twiddle.active = false;
+    }
 
 }
 
