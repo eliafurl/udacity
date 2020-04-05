@@ -1,3 +1,0 @@
-/home/ictadmin/udacity/term2-projects/02-PID-Control-Project/build/CMakeFiles/rebuild_cache.dir
-/home/ictadmin/udacity/term2-projects/02-PID-Control-Project/build/CMakeFiles/pid.dir
-/home/ictadmin/udacity/term2-projects/02-PID-Control-Project/build/CMakeFiles/edit_cache.dir
