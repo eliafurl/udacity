@@ -9,7 +9,7 @@ PID::~PID() {}
 void PID::Init(double Kp_, double Ki_, double Kd_, bool twiddle)
 {
     /**
-     * TODO: Initialize PID coefficients (and errors, if needed)
+     * Initialize PID coefficients (and errors, if needed)
      */
     this->p_error = 0.0;
     this->i_error = 0.0;
@@ -23,21 +23,15 @@ void PID::Init(double Kp_, double Ki_, double Kd_, bool twiddle)
 
     if (twiddle)
     {
-        // this->twiddle = { true,           //active
-        //                 0.05,             //tolerance
-        //                 0.0,              //best_error
-        //                 0,                //iteration
-        //                 100,              //ignore_initial_iterations
-        //                 0,                //index_param
-        //                 {0.1, 0.1, 0.1}   //delta_param
-        //               };
         this->twiddle.active = true;
         this->twiddle.tolerance = 0.05;
+        this->twiddle.minimum_error = 2.5;
         this->twiddle.best_error = 0.0;
         this->twiddle.iteration = 0;
         this->twiddle.ignore_initial_iterations = 100;
-        this->twiddle.index_param = 0;
-        this->twiddle.delta_param = {0.1, 0.1, 0.1};
+        this->twiddle.force_run = 1200;
+        this->twiddle.index_gains = 0;
+        this->twiddle.delta_gains = std::vector<double>(this->gains.size(), 0.1);
         this->twiddle.state = START;
     }
 
@@ -47,18 +41,15 @@ void PID::UpdateError(double cte)
 {
     //Update PID errors based on cte.
 
-    this->d_error = cte - this->p_error; // differential error
-    this->p_error = cte;                // proportional error
-    this->i_error += cte;                // integral error
+    this->d_error = cte - this->p_error;    // differential error
+    this->p_error = cte;                    // proportional error
+    this->i_error += cte;                   // integral error
 
 }
 
 double PID::TotalAverageError(double cte, int n_iter)
 {
-    if (n_iter >= this->twiddle.ignore_initial_iterations)
-    {
-        this->total_error += cte * cte;
-    }
+    this->total_error += std::abs(cte);
     return this->total_error/n_iter;
 }
 
@@ -79,7 +70,7 @@ double PID::ComputeControl()
 
 void PID::Twiddle(double avrg_error)
 {
-    double sum_threshold = std::accumulate(twiddle.delta_param.begin(), twiddle.delta_param.end(), 0.0);
+    double sum_threshold = std::accumulate(twiddle.delta_gains.begin(), twiddle.delta_gains.end(), 0.0);
     if (sum_threshold > twiddle.tolerance)
     {
         switch (twiddle.state)
@@ -87,7 +78,7 @@ void PID::Twiddle(double avrg_error)
             case START:
             {
                 twiddle.best_error = avrg_error;
-                *(this->gains[twiddle.index_param]) += twiddle.delta_param[twiddle.index_param];
+                *(this->gains[twiddle.index_gains]) += twiddle.delta_gains[twiddle.index_gains];
                 twiddle.state = INCREMENTING;
                 break;
             }
@@ -97,14 +88,14 @@ void PID::Twiddle(double avrg_error)
                 {
                     // incrementing work well, so we increment even more next time
                     twiddle.best_error = avrg_error;
-                    twiddle.delta_param[twiddle.index_param] *= 1.1;
-                    this->goToNextParam();
-                    *(this->gains[twiddle.index_param]) += twiddle.delta_param[twiddle.index_param];
+                    twiddle.delta_gains[twiddle.index_gains] *= 1.1;
+                    this->goToNextGain();
+                    *(this->gains[twiddle.index_gains]) += twiddle.delta_gains[twiddle.index_gains];
                 }
                 else
                 {
                     // otherwise try in the opposite direction
-                    *(this->gains[twiddle.index_param]) -= 2 * twiddle.delta_param[twiddle.index_param];
+                    *(this->gains[twiddle.index_gains]) -= 2 * twiddle.delta_gains[twiddle.index_gains];
                     twiddle.state = DECREMENTING;
                 }
                 break;
@@ -115,30 +106,35 @@ void PID::Twiddle(double avrg_error)
                 {
                     // decrementing work well, so we increment even more next time
                     twiddle.best_error = avrg_error;
-                    twiddle.delta_param[twiddle.index_param] *= 1.1;
+                    twiddle.delta_gains[twiddle.index_gains] *= 1.1;
                 }
                 else
                 {
                     // otherwise we reset the current parameter to its original value and
                     // reduce the amount modification
-                    *(this->gains[twiddle.index_param]) += twiddle.delta_param[twiddle.index_param];
-                    twiddle.delta_param[twiddle.index_param] *= 0.9;
+                    *(this->gains[twiddle.index_gains]) += twiddle.delta_gains[twiddle.index_gains];
+                    twiddle.delta_gains[twiddle.index_gains] *= 0.9;
                 }
                 twiddle.state = INCREMENTING;
-                this->goToNextParam();
-                *(this->gains[twiddle.index_param]) += twiddle.delta_param[twiddle.index_param];
+                this->goToNextGain();
+                *(this->gains[twiddle.index_gains]) += twiddle.delta_gains[twiddle.index_gains];
                 break;
             }
         }
+        std::cout << "\n[Twiddle] iteration: " << twiddle.iteration << "." << twiddle.index_gains << "\n"
+                  << "PID gains :" << std::endl;
     }
     else
     {
         twiddle.active = false;
+        std::cout << "\n[Twiddle] iteration: " << twiddle.iteration << "\n"
+                  << "------BEST SOLUTION------" << "\n"
+                  << "PID gains :" << std::endl;
     }
 
     this->total_error = 0.0;
-    std::cout << "\n[Twiddle iteration: " << twiddle.iteration << " ] " << "PID gains :\n"
-              << "Kp: " << this->Kp << "\n"
+    twiddle.iteration = 0;
+    std::cout << "Kp: " << this->Kp << "\n"
               << "Ki: " << this->Ki << "\n"
               << "Kd: " << this->Kd << "\n"
               << "Best error = " << twiddle.best_error << "\n"
@@ -146,16 +142,12 @@ void PID::Twiddle(double avrg_error)
               <<std::endl;
 }
 
-void PID::goToNextParam()
+void PID::goToNextGain()
 {
     do
     {
-        this->twiddle.index_param = (this->twiddle.index_param + 1) % this->twiddle.delta_param.size();
-        // continue until there is a delta_param that we want to change (>0)
+        this->twiddle.index_gains = (this->twiddle.index_gains + 1) % this->twiddle.delta_gains.size();
+        // continue until there is a delta_gains that we want to change (>0)
     }
-    while (this->twiddle.delta_param[this->twiddle.index_param] == 0);
-
-    if (this->twiddle.index_param == 0) {
-        ++this->twiddle.iteration;
-    }
+    while (this->twiddle.delta_gains[this->twiddle.index_gains] == 0);
 }

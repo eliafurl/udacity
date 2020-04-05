@@ -13,11 +13,13 @@ struct TwiddleResources
 {
     bool active;
     double tolerance;
+    double minimum_error;
     double best_error;
     int iteration;
     int ignore_initial_iterations;
-    int index_param;
-    std::vector<double> delta_param;
+    int force_run;
+    int index_gains;
+    std::vector<double> delta_gains;
     TwiddleState state;
 };
 
@@ -69,7 +71,10 @@ class PID {
         TwiddleResources twiddle;
 
     private:
-        void goToNextParam();
+        /**
+         * @brief Change index of the next gain to be tuned
+         */
+        void goToNextGain();
 
         /**
          * PID Errors

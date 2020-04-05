@@ -41,17 +41,15 @@ int main() {
   uWS::Hub h;
 
   PID pid;
-  //Initialize the pid variable. (lecture p=0,2, i=0,004, d=3) (twiddle: p = 0.313373, i = 0.004, d = 2.81048)
-  double K_p_0 = 0.2;//0.30351;
-  double K_i_0 = 0.004;//0.001;
-  double K_d_0 = 3;//2.66123;
+  //Initialize the pid variable. (twiddle IC: P = 0.2, I = 0.001, D = 3)
+  double K_p_0 = 0.1474;
+  double K_i_0 = 0.0012;
+  double K_d_0 = 2.7867;
 
-  bool twiddle = true;
+  bool twiddle = false; // For using the twiddle optimization set to true
   pid.Init(K_p_0, K_i_0, K_d_0, twiddle);
 
-  int n_iteration = 0;
-
-  h.onMessage([&pid, &n_iteration](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode)
   {
     // "42" at the start of the message means there's a websocket message event.
@@ -88,33 +86,25 @@ int main() {
           msgJson["throttle"] = 0.3;
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
           // Perform PID parameter tuning if twiddle is active
           if (pid.twiddle.active)
           {
-            if (n_iteration > pid.twiddle.ignore_initial_iterations)
+            pid.twiddle.iteration++;
+            if (pid.twiddle.iteration > pid.twiddle.ignore_initial_iterations)
             {
-              double avrg_error = pid.TotalAverageError(cte, n_iteration);
-              std::cout << "avrg_error = " << avrg_error << std::endl;
-              if (avrg_error > 0.01)
+              double avrg_error = pid.TotalAverageError(cte, pid.twiddle.iteration);
+
+              if (avrg_error > pid.twiddle.minimum_error || pid.twiddle.iteration > pid.twiddle.force_run)
               {
                 pid.Twiddle(avrg_error);
                 reset_simulator(ws);
-                n_iteration = 0.0;
-              }
-              else
-              {
-                n_iteration++;
               }
             }
-            else
-            {
-              n_iteration++;
-            }
-          }
+          } // end twiddle.active if
         }  // end "telemetry" if
+
       }
       else
       {
